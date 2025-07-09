@@ -1,115 +1,94 @@
 import streamlit as st
-import time
+from streamlit_lottie import st_lottie
+import requests
 
-# ------------------- CSS for Dark Mode Toggle -------------------
-dark_mode_toggle = """
-    <style>
-        body {
-            transition: background-color 0.3s ease;
-        }
-        .dark-mode {
-            background-color: #0e1117;
+# --- Load Lottie animation ---
+def load_lottieurl(url):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
+
+# Load snake animation
+lottie_snake = load_lottieurl("https://lottie.host/0599ba1e-e199-4e40-9611-cdbac3946bcb/wHFLjnnckd.json")
+
+# --- Dark Mode Toggle ---
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
+
+if st.sidebar.button("🌙 Toggle Dark Mode"):
+    st.session_state.dark_mode = not st.session_state.dark_mode
+
+# Apply dark mode styles
+if st.session_state.dark_mode:
+    st.markdown("""
+        <style>
+        body, .stApp {
+            background-color: #1e1e1e;
             color: #ffffff;
         }
-        .light-mode {
-            background-color: #ffffff;
-            color: #000000;
+        .st-bw {
+            background-color: #2b2b2b;
         }
-    </style>
-    <script>
-        function toggleMode() {
-            var body = document.body;
-            if (body.classList.contains('dark-mode')) {
-                body.classList.remove('dark-mode');
-                body.classList.add('light-mode');
-            } else {
-                body.classList.remove('light-mode');
-                body.classList.add('dark-mode');
-            }
-        }
-    </script>
-    <button onclick="toggleMode()" style="position:fixed;top:10px;right:10px;z-index:1000;">🌙 Toggle Dark Mode</button>
-"""
-st.markdown(dark_mode_toggle, unsafe_allow_html=True)
+        </style>
+    """, unsafe_allow_html=True)
 
-# ------------------- Title & Menu -------------------
-st.title("🐍 VenomVision: Snake Identification & Awareness")
+# --- Sidebar Navigation ---
+page = st.sidebar.selectbox("Navigate", ["Home", "Snake Knowledge Hub", "Myth Buster"])
 
-menu = st.sidebar.selectbox("Navigate", ["Home", "Identify Snake", "Snake Knowledge Hub", "Myths & Facts"])
+# --- HOME PAGE ---
+if page == "Home":
+    st.title("🐍 VenomVision")
+    st.subheader("Discover the world of snakes — Identify, Learn, and Stay Safe")
 
-# ------------------- Home Page -------------------
-if menu == "Home":
-    st.subheader("Welcome to VenomVision!")
-    st.write("""
-    VenomVision is your intelligent assistant for identifying snakes and spreading awareness about them.
-    
-    🧠 Built with AI, this app helps:
-    - Identify snake species
-    - Learn about venomous and non-venomous snakes
-    - Bust common myths that put lives at risk
-    - Understand first-aid protocols and facts
+    if lottie_snake:
+        st_lottie(lottie_snake, height=300, key="snake")
 
-    > *"Snakes are not aggressive; they are just misunderstood."*
+    st.markdown("""
+        Welcome to **VenomVision**, your one-stop app to:
 
-    👉 Use the sidebar to get started!
+        - 🧠 **Learn about various snakes** and their traits  
+        - ❓ **Bust common snake myths**  
+        - 🚑 **Access first-aid tips** in case of a bite  
+
+        👉 Start by selecting a section from the **left sidebar**.
     """)
 
-# ------------------- Identify Snake (placeholder) -------------------
-elif menu == "Identify Snake":
-    st.subheader("🔍 Identify a Snake")
-    uploaded_file = st.file_uploader("Upload a snake image", type=["jpg", "jpeg", "png"])
-    if uploaded_file:
-        st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
-        with st.spinner("Analyzing..."):
-            time.sleep(3)  # Simulate processing time
-        st.success("This looks like a **Spectacled Cobra** (Naja naja)")
-        st.info("☠️ Venomous\n\nIf bitten, seek medical help immediately. Do not suck venom or cut the wound.")
+# --- SNAKE KNOWLEDGE HUB ---
+elif page == "Snake Knowledge Hub":
+    st.title("🐍 Snake Knowledge Hub")
 
-# ------------------- Knowledge Hub -------------------
-elif menu == "Snake Knowledge Hub":
-    st.subheader("📚 Snake Knowledge Hub")
-    
     snakes = {
-        "Indian Cobra": {
-            "Scientific Name": "Naja naja",
-            "Venomous": "Yes",
-            "Info": "Found all over India. Famous for its hood and spectacles mark."
-        },
-        "Russell's Viper": {
-            "Scientific Name": "Daboia russelii",
-            "Venomous": "Yes",
-            "Info": "One of the Big Four in India. Very dangerous."
-        },
-        "Common Krait": {
-            "Scientific Name": "Bungarus caeruleus",
-            "Venomous": "Yes",
-            "Info": "Nocturnal and highly venomous. Appears black or dark blue with white bands."
-        },
-        "Rat Snake": {
-            "Scientific Name": "Ptyas mucosa",
-            "Venomous": "No",
-            "Info": "Non-venomous and helpful in controlling rodents."
-        }
+        "Indian Cobra": "Venomous. Known for its hood and neurotoxic venom.",
+        "Russell's Viper": "Highly venomous. Loud hiss and hemotoxic venom.",
+        "Saw-scaled Viper": "Aggressive. Fast striker with hemotoxic venom.",
+        "Common Krait": "Painless but deadly neurotoxic bite. Nocturnal.",
+        "Green Vine Snake": "Mildly venomous. Slender and bright green.",
+        "Reticulated Python": "Non-venomous. Longest snake. Constrictor.",
+        "King Cobra": "World’s longest venomous snake. Eats other snakes.",
+        "Banded Krait": "Brightly banded. Neurotoxic venom. Shy in nature.",
+        "Indian Rock Python": "Non-venomous. Large constrictor. Slow moving.",
+        "Checkered Keelback": "Non-venomous. Common water snake."
     }
 
-    selected = st.selectbox("Select a snake to learn more", list(snakes.keys()))
-    details = snakes[selected]
-    st.write(f"**Scientific Name**: {details['Scientific Name']}")
-    st.write(f"**Venomous**: {details['Venomous']}")
-    st.write(f"**Info**: {details['Info']}")
+    choice = st.selectbox("Select a snake to learn more:", list(snakes.keys()))
+    st.info(snakes[choice])
 
-# ------------------- Myths & Facts -------------------
-elif menu == "Myths & Facts":
-    st.subheader("🧠 Myths & Facts About Snakes")
+# --- MYTH BUSTER ---
+elif page == "Myth Buster":
+    st.title("🧠 Snake Myths & Facts")
 
-    myths_facts = {
-        "All snakes are venomous.": "❌ Myth\n\n✅ Fact: Only about 15% of all snakes are venomous.",
-        "Snakes chase humans.": "❌ Myth\n\n✅ Fact: Snakes usually try to flee. They bite only when threatened.",
-        "Sucking out venom helps.": "❌ Myth\n\n✅ Fact: This can worsen the wound. Always seek medical help.",
-        "Snakes drink milk.": "❌ Myth\n\n✅ Fact: Snakes do not drink milk naturally; they may do so when dehydrated.",
-        "Dead snakes can't bite.": "❌ Myth\n\n✅ Fact: Reflex action in dead snakes can still cause bites."
-    }
+    myths_facts = [
+        ("All snakes are venomous.", "❌ False: Only a small percentage are venomous."),
+        ("Snakes chase humans.", "❌ False: They avoid conflict and escape if possible."),
+        ("Snakes drink milk.", "❌ False: Snakes don’t naturally drink milk."),
+        ("Poison and venom are the same.", "❌ False: Poison is ingested; venom is injected."),
+        ("Baby snakes are more dangerous.", "❌ False: Venom quantity is less and varies by species."),
+        ("Snakes hypnotize prey.", "❌ False: They rely on stealth and speed."),
+        ("Snakes remember people.", "❌ False: Snakes don’t have that kind of memory."),
+        ("Snakes always live in forests.", "❌ False: Many live in farms, wetlands, cities."),
+    ]
 
-    for myth, fact in myths_facts.items():
-        with st.expander(myth):
-            st.write(fact)
+    for myth, fact in myths_facts:
+        st.markdown(f"**Myth:** {myth}<br>**Fact:** {fact}", unsafe_allow_html=True)
+        st.markdown("---")
